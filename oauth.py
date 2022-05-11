@@ -2,7 +2,6 @@
 
 import requests
 import base64
-from urllib.parse import quote_plus
 
 
 class OAuth:
