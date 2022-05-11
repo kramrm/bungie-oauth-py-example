@@ -1,7 +1,6 @@
 # discord_auth.py
 
 import requests
-import base64
 
 
 class OAuth:
@@ -55,19 +54,12 @@ class BungieOauth(OAuth):
         payload = {
             "grant_type": "authorization_code",
             "code": code,
-        }
-        auth_string = str(
-            base64.b64encode(f"{self.client_id}:{self.client_secret}".encode("ascii")),
-            "utf-8",
-        )
-        print(f"auth_string: {auth_string}")
-        headers = {
             "Content-Type": "application/x-www-form-urlencoded",
-            "Authorization": f"Basic {auth_string}",
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
         }
 
-        access_token = requests.post(url=self.token_url, data=payload, headers=headers)
-        print(f"{access_token}")
+        access_token = requests.post(url=self.token_url, data=payload)
         json = access_token.json()
         return json.get("access_token")
 
