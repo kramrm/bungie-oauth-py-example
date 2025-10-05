@@ -1,16 +1,19 @@
 # main.py
 
+"""Flask application for Bungie OAuth example"""
 
 import os
+
+from dotenv import load_dotenv
 from flask import (
     Flask,
-    request,
     redirect,
+    request,
     session,
     url_for,
 )
+
 from oauth import BungieOauth
-from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -29,12 +32,14 @@ bungie = BungieOauth(
 
 @app.route("/")
 def home_page():
+    """Root page route"""
     return "Home page"
 
 
 @app.route("/login")
 @app.route("/login/")
 def bungie_login():
+    """Bungie login route"""
     bungie.redirect_uri = f"{request.url_root}/authorized"
     return redirect(bungie.get_login_url())
 
@@ -42,6 +47,7 @@ def bungie_login():
 @app.route("/authorized")
 @app.route("/bungie/authorized")
 def bungie_authorized():
+    """Bungie authorized route"""
     code = request.args.get("code")
     # print(f'code: {code}')
     token = bungie.get_access_token(code)
@@ -57,6 +63,7 @@ def bungie_authorized():
 
 @app.route("/logout")
 def bungie_logout():
+    """Bungie logout route"""
     session.pop("bungie_token", None)
     session.pop("bungie_id", None)
     session.pop("bungie_type", None)
@@ -65,6 +72,7 @@ def bungie_logout():
 
 @app.route("/user")
 def bungie_user():
+    """Bungie user route"""
     if "bungie_id" in session:
         try:
             me = bungie.get_linked_profiles(
