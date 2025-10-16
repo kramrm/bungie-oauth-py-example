@@ -1,4 +1,4 @@
-# discord_auth.py
+# oauth.py
 
 """OAuth object models"""
 
@@ -30,16 +30,21 @@ class OAuth:
         self.api_url = api_url
         self.api_key = api_key
 
-    def get_endpoint(self, endpoint, access_token=None, headers: Optional[dict] = None):
+    def _get_endpoint(
+        self,
+        endpoint,
+        access_token=None,
+        headers: Optional[dict] = None,
+        timeout: Optional[int] = 30,
+    ):
         """Generic method to get data from an endpoint."""
         if not headers:
             headers = {}
         url = self.api_url + endpoint
         if access_token:
             headers["Authorization"] = f"Bearer {access_token}"
-        data_object = requests.get(url=url, headers=headers, timeout=30)
-        data_json = data_object.json()
-        return data_json
+        response = requests.get(url=url, headers=headers, timeout=timeout)
+        return response
 
 
 class BungieOauth(OAuth):
@@ -79,10 +84,11 @@ class BungieOauth(OAuth):
     def get_user(self, access_token) -> dict:
         """Get the current user's information."""
         url = self.api_url + "/User/GetMembershipsForCurrentUser/"
-        headers = {"Authorization": f"Bearer {access_token}", "X-API-Key": self.api_key}
-        user_object = requests.get(url=url, headers=headers, timeout=30)
-        user_json = user_object.json()
-        return user_json
+        headers = {"X-API-Key": self.api_key}
+        user_object = self._get_endpoint(
+            endpoint=url, headers=headers, access_token=access_token
+        )
+        return user_object.json()
 
     def get_linked_profiles(
         self, membership_type, membership_id, access_token=None
@@ -93,7 +99,7 @@ class BungieOauth(OAuth):
             + f"/Destiny2/{membership_type}/Profile/{membership_id}/LinkedProfiles/"
         )
         headers = {"X-API-Key": self.api_key}
-        if access_token:
-            headers["Authorization"] = f"Bearer {access_token}"
-        user_object = requests.get(url=url, headers=headers, timeout=30)
+        user_object = self._get_endpoint(
+            endpoint=url, headers=headers, access_token=access_token
+        )
         return user_object.json()

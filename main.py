@@ -49,9 +49,7 @@ def bungie_login():
 def bungie_authorized():
     """Bungie authorized route"""
     code = request.args.get("code")
-    # print(f'code: {code}')
     token = bungie.get_access_token(code)
-    # print(token)
     if token:
         session["bungie_token"] = token
         me = bungie.get_user(session["bungie_token"])
@@ -64,19 +62,20 @@ def bungie_authorized():
 @app.route("/logout")
 def bungie_logout():
     """Bungie logout route"""
-    session.pop("bungie_token", None)
-    session.pop("bungie_id", None)
-    session.pop("bungie_type", None)
+    for var in ["bungie_token", "bungie_id", "bungie_type"]:
+        session.pop(var, None)
     return redirect(url_for("home_page"))
 
 
 @app.route("/user")
 def bungie_user():
     """Bungie user route"""
-    if "bungie_id" in session:
+    if "bungie_id" in session and "bungie_type" in session:
         try:
             me = bungie.get_linked_profiles(
-                session["bungie_type"], session["bungie_id"]
+                membership_type=session["bungie_type"],
+                membership_id=session["bungie_id"],
+                access_token=session.get("bungie_token"),
             )
         except Exception:
             return redirect(url_for("bungie_login"))
